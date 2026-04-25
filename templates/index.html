@@ -1,0 +1,636 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Online Examination System</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root,html[data-theme="dark"]{
+  --bg:#0c0f14;--surface:#141820;--surface2:#1a1f2b;--surface3:#222838;
+  --border:#2a3040;--border-light:#353d50;
+  --text:#e8eaf0;--text-dim:#8890a4;--text-muted:#5c6478;
+  --accent:#4f8cff;--accent-glow:#4f8cff22;
+  --green:#34d399;--green-bg:#34d39912;--green-border:#34d39930;
+  --red:#f87171;--red-bg:#f8717112;--red-border:#f8717130;
+  --yellow:#fbbf24;--yellow-bg:#fbbf2412;
+  --radius:10px;--radius-lg:14px;
+  --font:'DM Sans',sans-serif;--font-display:'Instrument Serif',serif;
+  --shadow:0 2px 12px rgba(0,0,0,.35);
+  --transition:all .2s cubic-bezier(.4,0,.2,1);
+}
+html[data-theme="light"]{
+  --bg:#f0f2f5;--surface:#ffffff;--surface2:#f5f6f8;--surface3:#ebedf0;
+  --border:#d8dce3;--border-light:#c5cad4;
+  --text:#1a1d24;--text-dim:#4a5060;--text-muted:#7a8194;
+  --accent:#3b6fdb;--accent-glow:#3b6fdb18;
+  --green:#16a36a;--green-bg:#16a36a12;--green-border:#16a36a30;
+  --red:#dc3545;--red-bg:#dc354512;--red-border:#dc354530;
+  --yellow:#d49a08;--yellow-bg:#d49a0812;
+  --shadow:0 2px 12px rgba(0,0,0,.08);
+}
+html{font-size:15px;scroll-behavior:smooth}
+body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
+::selection{background:var(--accent);color:#fff}
+::-webkit-scrollbar{width:6px;height:6px}
+::-webkit-scrollbar-track{background:var(--surface)}
+::-webkit-scrollbar-thumb{background:var(--border-light);border-radius:3px}
+
+.app{display:grid;grid-template-columns:260px 1fr;min-height:100vh}
+
+/* ── Sidebar ── */
+.sidebar{background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;position:sticky;top:0;height:100vh;overflow-y:auto}
+.logo{padding:28px 24px 20px;border-bottom:1px solid var(--border)}
+.logo h1{font-family:var(--font-display);font-size:1.55rem;font-weight:400;letter-spacing:-.02em;line-height:1.2}
+.logo span{display:block;font-family:var(--font);font-size:.72rem;color:var(--text-muted);margin-top:4px;letter-spacing:.06em;text-transform:uppercase;font-weight:500}
+
+.global-search-wrap{padding:16px 16px 0;position:relative}
+.global-search{width:100%;padding:10px 14px 10px 38px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-size:.82rem;font-family:var(--font);outline:none;transition:var(--transition)}
+.global-search:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-glow)}
+.global-search::placeholder{color:var(--text-muted)}
+.gs-icon{position:absolute;left:28px;top:28px;color:var(--text-muted);pointer-events:none}
+
+.nav{padding:16px 12px;flex:1}
+.nav a{display:flex;align-items:center;gap:12px;padding:10px 14px;border-radius:var(--radius);text-decoration:none;font-size:.88rem;font-weight:500;color:var(--text-dim);margin-bottom:2px;border:1px solid transparent;transition:var(--transition)}
+.nav a:hover{background:var(--surface2);color:var(--text)}
+.nav a.active{background:var(--accent-glow);color:var(--accent);border-color:rgba(79,140,255,.18)}
+.nav-icon{width:18px;height:18px;opacity:.6;flex-shrink:0}
+.nav a.active .nav-icon{opacity:1}
+.theme-toggle-wrap{padding:12px 16px;display:flex;align-items:center;gap:12px;cursor:pointer}
+.theme-label{font-size:.88rem;color:var(--text-dim);font-weight:500}
+.toggle-track{width:46px;height:26px;background:var(--accent);border-radius:13px;position:relative;transition:var(--transition);flex-shrink:0}
+html[data-theme="light"] .toggle-track{background:var(--accent)}
+html[data-theme="dark"] .toggle-track,html:not([data-theme="light"]) .toggle-track{background:var(--accent)}
+.toggle-knob{width:20px;height:20px;background:#fff;border-radius:50%;position:absolute;top:3px;left:3px;transition:var(--transition);box-shadow:0 1px 3px rgba(0,0,0,.2)}
+html[data-theme="dark"] .toggle-knob,html:not([data-theme="light"]) .toggle-knob{left:23px}
+html[data-theme="light"] .toggle-knob{left:3px}
+.sidebar-footer{padding:16px 20px;border-top:1px solid var(--border);font-size:.72rem;color:var(--text-muted);letter-spacing:.04em}
+
+/* ── Main ── */
+.main{padding:32px 40px;max-width:1200px;width:100%}
+.page-header{margin-bottom:32px}
+.accent-line{width:40px;height:3px;background:var(--accent);border-radius:2px;margin-bottom:16px}
+.page-header h2{font-family:var(--font-display);font-size:2.1rem;font-weight:400;letter-spacing:-.02em;line-height:1.15}
+.page-header p{color:var(--text-dim);margin-top:6px;font-size:.92rem}
+
+/* ── Stats ── */
+.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:32px}
+.stats-grid.col3{grid-template-columns:repeat(3,1fr)}
+.stats-grid.col2{grid-template-columns:repeat(2,1fr)}
+.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:22px 24px;transition:var(--transition);animation:fadeUp .4s ease forwards;opacity:0}
+.stat-card:hover{border-color:var(--border-light);transform:translateY(-1px);box-shadow:var(--shadow)}
+.stat-card:nth-child(1){animation-delay:.05s}
+.stat-card:nth-child(2){animation-delay:.1s}
+.stat-card:nth-child(3){animation-delay:.15s}
+.stat-card:nth-child(4){animation-delay:.2s}
+.stat-label{font-size:.73rem;text-transform:uppercase;letter-spacing:.08em;color:var(--text-muted);font-weight:600;margin-bottom:8px}
+.stat-value{font-family:var(--font-display);font-size:2rem;font-weight:400;letter-spacing:-.02em}
+.stat-sub{font-size:.78rem;color:var(--text-dim);margin-top:4px}
+.stat-card.accent .stat-value{color:var(--accent)}
+.stat-card.green .stat-value{color:var(--green)}
+.stat-card.red .stat-value{color:var(--red)}
+.stat-card.yellow .stat-value{color:var(--yellow)}
+@keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+
+/* ── Table ── */
+.table-wrap{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden;animation:fadeUp .4s ease forwards;opacity:0;animation-delay:.15s}
+.table-header{display:flex;justify-content:space-between;align-items:center;padding:18px 24px;border-bottom:1px solid var(--border)}
+.table-header h3{font-size:1rem;font-weight:600}
+.table-count{font-size:.78rem;color:var(--text-muted);background:var(--surface2);padding:4px 12px;border-radius:20px}
+table{width:100%;border-collapse:collapse}
+thead{background:var(--surface2)}
+th{text-align:left;padding:12px 20px;font-size:.72rem;text-transform:uppercase;letter-spacing:.07em;color:var(--text-muted);font-weight:600;border-bottom:1px solid var(--border);white-space:nowrap}
+td{padding:13px 20px;font-size:.88rem;border-bottom:1px solid var(--border);color:var(--text-dim);vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:var(--surface2);color:var(--text)}
+tr{transition:var(--transition)}
+a.row-link{display:contents;color:inherit;text-decoration:none}
+
+.cell-name{color:var(--text);font-weight:500}
+.cell-id{font-size:.78rem;color:var(--text-muted)}
+.cell-marks{font-weight:600;font-variant-numeric:tabular-nums}
+.marks-high{color:var(--green)}
+.marks-mid{color:var(--yellow)}
+.marks-low{color:var(--red)}
+
+.badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:.72rem;font-weight:600;letter-spacing:.03em}
+.badge-pass{background:var(--green-bg);color:var(--green);border:1px solid var(--green-border)}
+.badge-fail{background:var(--red-bg);color:var(--red);border:1px solid var(--red-border)}
+.badge-course{background:var(--surface2);color:var(--text-dim);border:1px solid var(--border)}
+.badge-male{background:#3b82f612;color:#60a5fa;border:1px solid #3b82f630}
+.badge-female{background:#c084fc12;color:#c084fc;border:1px solid #c084fc30}
+
+/* ── Filters ── */
+.filters{display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap;align-items:center}
+.filter-btn{padding:7px 16px;border-radius:20px;border:1px solid var(--border);background:transparent;color:var(--text-dim);font-size:.8rem;font-family:var(--font);cursor:pointer;transition:var(--transition);font-weight:500;text-decoration:none;display:inline-block}
+.filter-btn:hover{border-color:var(--border-light);color:var(--text)}
+.filter-btn.active{background:var(--accent-glow);color:var(--accent);border-color:rgba(79,140,255,.3)}
+.filter-label{font-size:.75rem;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted);font-weight:600;margin-right:4px}
+select.filter-select{padding:7px 30px 7px 14px;border-radius:var(--radius);border:1px solid var(--border);background:var(--surface);color:var(--text-dim);font-size:.82rem;font-family:var(--font);cursor:pointer;outline:none;transition:var(--transition);appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%235c6478' stroke-width='1.5' fill='none'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center}
+select.filter-select:focus{border-color:var(--accent)}
+
+/* ── Search bar (in-page) ── */
+.search-bar{display:flex;gap:10px;margin-bottom:24px}
+.search-input{flex:1;padding:13px 18px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-size:.92rem;font-family:var(--font);outline:none;transition:var(--transition)}
+.search-input:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-glow)}
+.search-input::placeholder{color:var(--text-muted)}
+.search-btn{padding:13px 28px;background:var(--accent);color:#fff;border:none;border-radius:var(--radius);font-family:var(--font);font-size:.88rem;font-weight:600;cursor:pointer;transition:var(--transition)}
+.search-btn:hover{background:#3a6fd8}
+
+/* ── Pagination ── */
+.pagination{display:flex;justify-content:space-between;align-items:center;padding:16px 24px;border-top:1px solid var(--border)}
+.page-info{font-size:.8rem;color:var(--text-muted)}
+.page-btns{display:flex;gap:6px}
+.page-btn{padding:6px 14px;border:1px solid var(--border);border-radius:var(--radius);background:transparent;color:var(--text-dim);font-size:.82rem;font-family:var(--font);cursor:pointer;transition:var(--transition);text-decoration:none;display:inline-block}
+.page-btn:hover{background:var(--surface2);color:var(--text)}
+.page-btn.disabled{opacity:.3;pointer-events:none}
+.page-btn.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+
+/* ── Detail Panel ── */
+.detail-panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:28px;margin-bottom:24px;animation:fadeUp .3s ease forwards}
+.detail-panel h3{font-family:var(--font-display);font-size:1.6rem;font-weight:400;margin-bottom:4px}
+.detail-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:20px}
+.detail-field{padding:14px 18px;background:var(--surface2);border-radius:var(--radius);border:1px solid var(--border)}
+.detail-field .label{font-size:.7rem;text-transform:uppercase;letter-spacing:.07em;color:var(--text-muted);font-weight:600;margin-bottom:5px}
+.detail-field .value{font-size:.95rem;color:var(--text);font-weight:500}
+.back-btn{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border:1px solid var(--border);border-radius:var(--radius);background:transparent;color:var(--text-dim);font-size:.82rem;font-family:var(--font);cursor:pointer;transition:var(--transition);margin-bottom:20px;text-decoration:none}
+.back-btn:hover{background:var(--surface2);color:var(--text)}
+
+/* ── Subject Cards ── */
+.subject-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:16px}
+.subject-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:24px;transition:var(--transition);text-decoration:none;color:inherit;display:block;animation:fadeUp .4s ease forwards;opacity:0}
+.subject-card:nth-child(odd){animation-delay:.05s}
+.subject-card:nth-child(even){animation-delay:.12s}
+.subject-card:hover{border-color:var(--accent);transform:translateY(-2px);box-shadow:0 4px 20px rgba(79,140,255,.08)}
+.subject-card h4{font-size:1.05rem;font-weight:600;margin-bottom:4px;color:var(--text)}
+.subject-card .sub-meta{font-size:.78rem;color:var(--text-muted);margin-bottom:14px}
+.subject-stats{display:flex;gap:20px}
+.subject-stat{text-align:center}
+.subject-stat .val{font-family:var(--font-display);font-size:1.3rem}
+.subject-stat .lbl{font-size:.68rem;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted);margin-top:2px}
+
+/* ── Question Card ── */
+.q-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:24px;margin-bottom:14px;animation:fadeUp .35s ease forwards;opacity:0}
+.q-card:nth-child(1){animation-delay:.05s}
+.q-card:nth-child(2){animation-delay:.1s}
+.q-card:nth-child(3){animation-delay:.15s}
+.q-card:nth-child(4){animation-delay:.2s}
+.q-card:nth-child(5){animation-delay:.25s}
+.q-num{font-size:.72rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em;font-weight:600;margin-bottom:8px}
+.q-text{font-size:.95rem;color:var(--text);line-height:1.55;margin-bottom:16px}
+.q-options{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.q-opt{padding:10px 16px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;font-size:.85rem;color:var(--text-dim);transition:var(--transition);cursor:pointer}
+.q-opt:hover{border-color:var(--border-light);color:var(--text)}
+.q-opt.correct{background:var(--green-bg);border-color:var(--green-border);color:var(--green)}
+.q-opt.wrong{background:var(--red-bg);border-color:var(--red-border);color:var(--red)}
+.q-options.answered .q-opt{cursor:default;pointer-events:none}
+.q-opt span{font-weight:600;margin-right:8px;color:var(--text-muted)}
+
+/* ── Bar ── */
+.bar-chart{display:flex;flex-direction:column;gap:8px}
+.bar-row{display:flex;align-items:center;gap:12px}
+.bar-label{width:110px;font-size:.78rem;color:var(--text-dim);text-align:right;flex-shrink:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bar-track{flex:1;height:22px;background:var(--surface2);border-radius:4px;overflow:hidden}
+.bar-fill{height:100%;border-radius:4px;transition:width .6s cubic-bezier(.4,0,.2,1)}
+.bar-fill.green{background:linear-gradient(90deg,#34d399,#34d399cc)}
+.bar-fill.blue{background:var(--accent)}
+.bar-fill.red{background:linear-gradient(90deg,#f87171,#f87171cc)}
+.bar-value{font-size:.72rem;color:var(--text-muted);width:50px;text-align:right;flex-shrink:0}
+
+/* ── Empty ── */
+.empty{text-align:center;padding:60px 20px;color:var(--text-muted)}
+.empty h4{font-size:1.1rem;margin-bottom:6px;color:var(--text-dim)}
+
+/* ── Responsive ── */
+@media(max-width:1024px){.stats-grid{grid-template-columns:repeat(2,1fr)}.detail-grid{grid-template-columns:repeat(2,1fr)}.subject-grid{grid-template-columns:1fr}}
+@media(max-width:768px){.app{grid-template-columns:1fr}.sidebar{display:none}.main{padding:20px 16px}.stats-grid{grid-template-columns:1fr 1fr}}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- ═══════ SIDEBAR ═══════ -->
+  <aside class="sidebar">
+    <div class="logo">
+      <h1>Examination<br>System</h1>
+      <span>Online Portal</span>
+    </div>
+
+    <div class="global-search-wrap">
+      <svg class="gs-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <form action="/search" method="GET" style="margin:0">
+        <input class="global-search" type="text" name="q" placeholder="Search students, results..." value="{{ query if query else '' }}">
+      </form>
+    </div>
+
+    <nav class="nav">
+      <a href="/" class="{{ 'active' if page == 'dashboard' }}">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+        Dashboard
+      </a>
+      <a href="/students" class="{{ 'active' if page == 'students' or page == 'student_detail' }}">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
+        Students
+      </a>
+      <a href="/results" class="{{ 'active' if page == 'results' }}">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+        Results
+      </a>
+      <a href="/subjects" class="{{ 'active' if page == 'subjects' }}">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/></svg>
+        Subjects
+      </a>
+      <a href="/questions" class="{{ 'active' if page == 'questions' }}">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        Questions
+      </a>
+      <a href="/search" class="{{ 'active' if page == 'search' }}">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        Search
+      </a>
+    </nav>
+
+    <div class="theme-toggle-wrap" onclick="toggleTheme()">
+      <div class="toggle-track"><div class="toggle-knob"></div></div>
+      <span class="theme-label" id="themeLabel">Dark Mode</span>
+    </div>
+    <div class="sidebar-footer">MySQL &middot; Flask &middot; Jinja2</div>
+  </aside>
+
+  <!-- ═══════ MAIN CONTENT ═══════ -->
+  <main class="main">
+
+    <!-- ━━━ DASHBOARD ━━━ -->
+    {% if page == 'dashboard' %}
+    <div class="page-header"><div class="accent-line"></div><h2>Dashboard</h2><p>Overview of the online examination system</p></div>
+
+    <div class="stats-grid">
+      <div class="stat-card accent"><div class="stat-label">Total Students</div><div class="stat-value">{{ total_students }}</div><div class="stat-sub">Across BCA, BTech, MCA</div></div>
+      <div class="stat-card green"><div class="stat-label">Pass Rate</div><div class="stat-value">{{ pass_rate }}%</div><div class="stat-sub">Out of {{ total_results }} exams</div></div>
+      <div class="stat-card yellow"><div class="stat-label">Average Score</div><div class="stat-value">{{ avg_marks }}</div><div class="stat-sub">Out of 100 marks</div></div>
+      <div class="stat-card"><div class="stat-label">Question Bank</div><div class="stat-value">{{ "{:,}".format(total_questions) }}</div><div class="stat-sub">10 subjects</div></div>
+    </div>
+
+    <div class="stats-grid col2">
+      <div class="table-wrap">
+        <div class="table-header"><h3>Recent Results</h3></div>
+        <table>
+          <thead><tr><th>Student</th><th>Subject</th><th>Marks</th><th>Status</th></tr></thead>
+          <tbody>
+          {% for r in recent %}
+          <tr>
+            <td><a href="/student/{{ r[0] }}" style="color:var(--text);text-decoration:none;font-weight:500">{{ r[1] }}</a></td>
+            <td>{{ r[2] }}</td>
+            <td class="cell-marks {% if r[3] >= 60 %}marks-high{% elif r[3] >= 40 %}marks-mid{% else %}marks-low{% endif %}">{{ r[3] }}/100</td>
+            <td><span class="badge {{ 'badge-pass' if r[4] == 'Pass' else 'badge-fail' }}">{{ r[4] }}</span></td>
+          </tr>
+          {% endfor %}
+          </tbody>
+        </table>
+      </div>
+
+      <div>
+        <div class="table-wrap" style="margin-bottom:16px">
+          <div class="table-header"><h3>Course Distribution</h3></div>
+          <div style="padding:20px 24px">
+            {% for c in course_dist %}
+            <div class="bar-row" style="margin-bottom:6px">
+              <div class="bar-label">{{ c[0] }}</div>
+              <div class="bar-track"><div class="bar-fill blue" style="width:{{ (c[1] / total_students * 100)|round }}%"></div></div>
+              <div class="bar-value">{{ c[1] }}</div>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+
+        <div class="table-wrap">
+          <div class="table-header"><h3>Subject Pass Rates</h3></div>
+          <div style="padding:20px 24px">
+            <div class="bar-chart">
+            {% for s in subject_rates %}
+              {% set rate = (s[2] / s[1] * 100)|round if s[1] > 0 else 0 %}
+              <div class="bar-row">
+                <div class="bar-label" title="{{ s[0] }}">{{ s[0][:16] }}{% if s[0]|length > 16 %}..{% endif %}</div>
+                <div class="bar-track"><div class="bar-fill {{ 'green' if rate >= 50 else 'red' }}" style="width:{{ rate }}%"></div></div>
+                <div class="bar-value">{{ rate }}%</div>
+              </div>
+            {% endfor %}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- ━━━ STUDENTS ━━━ -->
+    {% if page == 'students' %}
+    <div class="page-header"><div class="accent-line"></div><h2>Students</h2><p>Browse all registered students</p></div>
+
+    <div class="filters">
+      <span class="filter-label">Course</span>
+      {% for c in ['All', 'BCA', 'BTech', 'MCA'] %}
+      <a href="/students?course={{ c }}" class="filter-btn {{ 'active' if course_filter == c }}">{{ c }}</a>
+      {% endfor %}
+    </div>
+
+    <div class="table-wrap">
+      <div class="table-header"><h3>Student Records</h3><span class="table-count">{{ total }} students</span></div>
+      {% if students %}
+      <table>
+        <thead><tr><th>ID</th><th>Name</th><th>Roll No</th><th>Gender</th><th>Course</th><th>Email</th></tr></thead>
+        <tbody>
+        {% for s in students %}
+        <tr onclick="window.location='/student/{{ s[0] }}'" style="cursor:pointer">
+          <td class="cell-id">{{ s[0] }}</td>
+          <td class="cell-name">{{ s[1] }}</td>
+          <td>{{ s[2] }}</td>
+          <td><span class="badge {{ 'badge-male' if s[4] == 'Male' else 'badge-female' }}">{{ s[4] }}</span></td>
+          <td><span class="badge badge-course">{{ s[5] }}</span></td>
+          <td style="color:var(--text-muted);font-size:.82rem">{{ s[6] }}</td>
+        </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+      <div class="pagination">
+        <span class="page-info">Page {{ current_page }} of {{ total_pages }}</span>
+        <div class="page-btns">
+          <a href="/students?course={{ course_filter }}&page={{ current_page - 1 }}" class="page-btn {{ 'disabled' if current_page <= 1 }}">Prev</a>
+          {% for p in range(1, total_pages + 1) %}
+            {% if p <= 7 or (p >= current_page - 2 and p <= current_page + 2) or p >= total_pages - 1 %}
+            <a href="/students?course={{ course_filter }}&page={{ p }}" class="page-btn {{ 'active' if p == current_page }}">{{ p }}</a>
+            {% endif %}
+          {% endfor %}
+          <a href="/students?course={{ course_filter }}&page={{ current_page + 1 }}" class="page-btn {{ 'disabled' if current_page >= total_pages }}">Next</a>
+        </div>
+      </div>
+      {% else %}
+      <div class="empty"><h4>No students found</h4></div>
+      {% endif %}
+    </div>
+    {% endif %}
+
+    <!-- ━━━ STUDENT DETAIL ━━━ -->
+    {% if page == 'student_detail' %}
+    <a href="/students" class="back-btn">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+      Back to Students
+    </a>
+
+    {% if student %}
+    <div class="detail-panel">
+      <h3>{{ student[1] }}</h3>
+      <span style="color:var(--text-muted);font-size:.85rem">Student ID: {{ student[0] }}</span>
+      <div class="detail-grid">
+        <div class="detail-field"><div class="label">Roll Number</div><div class="value">{{ student[2] }}</div></div>
+        <div class="detail-field"><div class="label">Course</div><div class="value">{{ student[6] }}</div></div>
+        <div class="detail-field"><div class="label">Gender</div><div class="value">{{ student[5] }}</div></div>
+        <div class="detail-field"><div class="label">Username</div><div class="value">{{ student[3] }}</div></div>
+        <div class="detail-field"><div class="label">Email</div><div class="value" style="font-size:.82rem;word-break:break-all">{{ student[7] }}</div></div>
+        <div class="detail-field"><div class="label">Exams Taken</div><div class="value">{{ exams|length }}</div></div>
+      </div>
+    </div>
+
+    {% if exams %}
+    {% set avg = (exams|sum(attribute='1') / exams|length)|round(1) if exams|length > 0 else 0 %}
+    {% set pass_count = exams|selectattr('7', 'equalto', 'Pass')|list|length %}
+    <div class="stats-grid col3" style="margin-bottom:24px">
+      <div class="stat-card green"><div class="stat-label">Passed</div><div class="stat-value">{{ pass_count }}</div></div>
+      <div class="stat-card red"><div class="stat-label">Failed</div><div class="stat-value">{{ exams|length - pass_count }}</div></div>
+      <div class="stat-card accent"><div class="stat-label">Best Score</div><div class="stat-value">{{ exams|map(attribute='1')|max }}</div></div>
+    </div>
+
+    <div class="table-wrap">
+      <div class="table-header"><h3>Exam History</h3></div>
+      <table>
+        <thead><tr><th>Subject</th><th>Marks</th><th>Attempted</th><th>Correct</th><th>Wrong</th><th>Date</th><th>Status</th></tr></thead>
+        <tbody>
+        {% for e in exams %}
+        <tr>
+          <td>{{ e[0] }}</td>
+          <td class="cell-marks {% if e[1] >= 60 %}marks-high{% elif e[1] >= 40 %}marks-mid{% else %}marks-low{% endif %}">{{ e[1] }}/{{ e[2] }}</td>
+          <td>{{ e[3] }}</td>
+          <td style="color:var(--green)">{{ e[4] }}</td>
+          <td style="color:var(--red)">{{ e[5] }}</td>
+          <td style="color:var(--text-muted)">{{ e[6] }}</td>
+          <td><span class="badge {{ 'badge-pass' if e[7] == 'Pass' else 'badge-fail' }}">{{ e[7] }}</span></td>
+        </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div class="empty"><h4>No exam records</h4><p>This student has not taken any exams yet</p></div>
+    {% endif %}
+    {% endif %}
+    {% endif %}
+
+    <!-- ━━━ RESULTS ━━━ -->
+    {% if page == 'results' %}
+    <div class="page-header"><div class="accent-line"></div><h2>Results</h2><p>Examination results across all subjects</p></div>
+
+    <div class="filters">
+      <span class="filter-label">Subject</span>
+      <form id="resultFilter" method="GET" action="/results" style="display:contents">
+        <select class="filter-select" name="subject" onchange="document.getElementById('resultFilter').submit()">
+          <option value="All" {{ 'selected' if subject_filter == 'All' }}>All Subjects</option>
+          {% for s in subjects %}
+          <option value="{{ s[0] }}" {{ 'selected' if subject_filter|string == s[0]|string }}>{{ s[1] }}</option>
+          {% endfor %}
+        </select>
+        <input type="hidden" name="status" value="{{ status_filter }}">
+      </form>
+      <span class="filter-label" style="margin-left:12px">Status</span>
+      {% for f in ['All', 'Pass', 'Fail'] %}
+      <a href="/results?subject={{ subject_filter }}&status={{ f }}" class="filter-btn {{ 'active' if status_filter == f }}">{{ f }}</a>
+      {% endfor %}
+    </div>
+
+    <div class="table-wrap">
+      <div class="table-header"><h3>Result Records</h3><span class="table-count">{{ total }} results</span></div>
+      {% if results %}
+      <table>
+        <thead><tr><th>Student</th><th>Roll No</th><th>Subject</th><th>Marks</th><th>Correct/Wrong</th><th>Date</th><th>Status</th></tr></thead>
+        <tbody>
+        {% for r in results %}
+        <tr onclick="window.location='/student/{{ r[0] }}'" style="cursor:pointer">
+          <td class="cell-name">{{ r[1] }}</td>
+          <td class="cell-id">{{ r[2] }}</td>
+          <td style="font-size:.82rem">{{ r[3] }}</td>
+          <td class="cell-marks {% if r[4] >= 60 %}marks-high{% elif r[4] >= 40 %}marks-mid{% else %}marks-low{% endif %}">{{ r[4] }}/100</td>
+          <td><span style="color:var(--green)">{{ r[5] }}</span> / <span style="color:var(--red)">{{ r[6] }}</span></td>
+          <td style="color:var(--text-muted);font-size:.82rem">{{ r[7] }}</td>
+          <td><span class="badge {{ 'badge-pass' if r[8] == 'Pass' else 'badge-fail' }}">{{ r[8] }}</span></td>
+        </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+      <div class="pagination">
+        <span class="page-info">Page {{ current_page }} of {{ total_pages }}</span>
+        <div class="page-btns">
+          <a href="/results?subject={{ subject_filter }}&status={{ status_filter }}&page={{ current_page - 1 }}" class="page-btn {{ 'disabled' if current_page <= 1 }}">Prev</a>
+          {% for p in range(1, total_pages + 1) %}
+            {% if p <= 5 or (p >= current_page - 1 and p <= current_page + 1) or p >= total_pages %}
+            <a href="/results?subject={{ subject_filter }}&status={{ status_filter }}&page={{ p }}" class="page-btn {{ 'active' if p == current_page }}">{{ p }}</a>
+            {% endif %}
+          {% endfor %}
+          <a href="/results?subject={{ subject_filter }}&status={{ status_filter }}&page={{ current_page + 1 }}" class="page-btn {{ 'disabled' if current_page >= total_pages }}">Next</a>
+        </div>
+      </div>
+      {% else %}
+      <div class="empty"><h4>No results found</h4><p>Try adjusting your filters</p></div>
+      {% endif %}
+    </div>
+    {% endif %}
+
+    <!-- ━━━ SUBJECTS ━━━ -->
+    {% if page == 'subjects' %}
+    <div class="page-header"><div class="accent-line"></div><h2>Subjects</h2><p>All subjects with their statistics</p></div>
+    <div class="subject-grid">
+      {% for s in subjects_list %}
+      <a href="/results?subject={{ s[0] }}&status=All" class="subject-card">
+        <h4>{{ s[1] }}</h4>
+        <div class="sub-meta">{{ s[2] }} &middot; {{ s[3] }} Questions</div>
+        <div class="subject-stats">
+          <div class="subject-stat"><div class="val" style="color:var(--text)">{{ s[4] }}</div><div class="lbl">Exams</div></div>
+          <div class="subject-stat"><div class="val {% if s[5] and s[5] >= 60 %}marks-high{% elif s[5] and s[5] >= 40 %}marks-mid{% else %}marks-low{% endif %}">{{ s[5] or '--' }}</div><div class="lbl">Avg Score</div></div>
+          <div class="subject-stat"><div class="val" style="color:var(--green)">{{ s[6] or 0 }}%</div><div class="lbl">Pass Rate</div></div>
+        </div>
+      </a>
+      {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- ━━━ QUESTIONS ━━━ -->
+    {% if page == 'questions' %}
+    <div class="page-header"><div class="accent-line"></div><h2>Question Bank</h2><p>Random sample of questions from the database</p></div>
+
+    <div class="filters" style="margin-bottom:24px">
+      <span class="filter-label">Subject</span>
+      <form method="GET" action="/questions" style="display:contents">
+        <select class="filter-select" name="subject" onchange="this.form.submit()">
+          <option value="All" {{ 'selected' if subject_filter == 'All' }}>All Subjects</option>
+          {% for s in subjects %}
+          <option value="{{ s[0] }}" {{ 'selected' if subject_filter|string == s[0]|string }}>{{ s[1] }}</option>
+          {% endfor %}
+        </select>
+      </form>
+      <a href="/questions?subject={{ subject_filter }}" class="filter-btn" style="margin-left:8px">Refresh Questions</a>
+    </div>
+
+    {% if questions %}
+    {% for q in questions %}
+    <div class="q-card">
+      <div class="q-num">Q{{ loop.index }} &middot; {{ q[7] }}</div>
+      <div class="q-text">{{ q[1] }}</div>
+      <div class="q-options" data-answer="{{ q[6] }}">
+        <div class="q-opt" data-letter="A"><span>A.</span> {{ q[2] }}</div>
+        <div class="q-opt" data-letter="B"><span>B.</span> {{ q[3] }}</div>
+        <div class="q-opt" data-letter="C"><span>C.</span> {{ q[4] }}</div>
+        <div class="q-opt" data-letter="D"><span>D.</span> {{ q[5] }}</div>
+      </div>
+    </div>
+    {% endfor %}
+    {% else %}
+    <div class="empty"><h4>No questions found</h4></div>
+    {% endif %}
+    {% endif %}
+
+    <!-- ━━━ SEARCH ━━━ -->
+    {% if page == 'search' %}
+    <div class="page-header"><div class="accent-line"></div><h2>Search</h2><p>Find students, results, and exam records</p></div>
+
+    <form action="/search" method="GET" class="search-bar">
+      <input class="search-input" type="text" name="q" placeholder="Search by student name, roll number, or email..." value="{{ query if query else '' }}" autofocus>
+      <button class="search-btn" type="submit">Search</button>
+    </form>
+
+    {% if query %}
+      {% if student_results %}
+      <div class="table-wrap" style="margin-bottom:24px">
+        <div class="table-header"><h3>Matching Students</h3><span class="table-count">{{ student_results|length }} found</span></div>
+        <table>
+          <thead><tr><th>ID</th><th>Name</th><th>Roll No</th><th>Gender</th><th>Course</th><th>Email</th></tr></thead>
+          <tbody>
+          {% for s in student_results %}
+          <tr onclick="window.location='/student/{{ s[0] }}'" style="cursor:pointer">
+            <td class="cell-id">{{ s[0] }}</td>
+            <td class="cell-name">{{ s[1] }}</td>
+            <td>{{ s[2] }}</td>
+            <td><span class="badge {{ 'badge-male' if s[3] == 'Male' else 'badge-female' }}">{{ s[3] }}</span></td>
+            <td><span class="badge badge-course">{{ s[4] }}</span></td>
+            <td style="color:var(--text-muted);font-size:.82rem">{{ s[5] }}</td>
+          </tr>
+          {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% endif %}
+
+      {% if result_data %}
+      <div class="table-wrap">
+        <div class="table-header"><h3>Matching Results</h3><span class="table-count">{{ result_data|length }} found</span></div>
+        <table>
+          <thead><tr><th>Student</th><th>Subject</th><th>Marks</th><th>Status</th><th>Date</th></tr></thead>
+          <tbody>
+          {% for r in result_data %}
+          <tr onclick="window.location='/student/{{ r[0] }}'" style="cursor:pointer">
+            <td class="cell-name">{{ r[1] }}</td>
+            <td>{{ r[2] }}</td>
+            <td class="cell-marks {% if r[3] >= 60 %}marks-high{% elif r[3] >= 40 %}marks-mid{% else %}marks-low{% endif %}">{{ r[3] }}/100</td>
+            <td><span class="badge {{ 'badge-pass' if r[4] == 'Pass' else 'badge-fail' }}">{{ r[4] }}</span></td>
+            <td style="color:var(--text-muted)">{{ r[5] }}</td>
+          </tr>
+          {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% endif %}
+
+      {% if not student_results and not result_data %}
+      <div class="empty"><h4>No results for "{{ query }}"</h4><p>Try a different name, roll number, or email</p></div>
+      {% endif %}
+    {% else %}
+    <div class="empty"><h4>Enter a search term above</h4><p>Search by student name, roll number, or email address</p></div>
+    {% endif %}
+    {% endif %}
+
+  </main>
+</div>
+
+<script>
+(function(){
+  var t=localStorage.getItem('theme')||'dark';
+  document.documentElement.setAttribute('data-theme',t);
+})();
+function toggleTheme(){
+  var current=document.documentElement.getAttribute('data-theme')||'dark';
+  var next=current==='dark'?'light':'dark';
+  document.documentElement.setAttribute('data-theme',next);
+  localStorage.setItem('theme',next);
+  var label=document.getElementById('themeLabel');
+  if(label) label.textContent=next==='dark'?'Dark Mode':'Light Mode';
+}
+document.addEventListener('DOMContentLoaded', function(){
+  var t=document.documentElement.getAttribute('data-theme')||'dark';
+  var label=document.getElementById('themeLabel');
+  if(label) label.textContent=t==='dark'?'Dark Mode':'Light Mode';
+  document.querySelectorAll('.q-opt').forEach(function(el){
+    el.addEventListener('click', function(){
+      var parent = this.parentElement;
+      if(parent.classList.contains('answered')) return;
+      parent.classList.add('answered');
+      var correct = parent.getAttribute('data-answer');
+      var picked = this.getAttribute('data-letter');
+      if(picked === correct){
+        this.classList.add('correct');
+      } else {
+        this.classList.add('wrong');
+        parent.querySelector('[data-letter="'+correct+'"]').classList.add('correct');
+      }
+    });
+  });
+});
+</script>
+</body>
+</html>
